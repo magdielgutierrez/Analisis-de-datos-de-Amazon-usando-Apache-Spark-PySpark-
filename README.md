@@ -108,7 +108,7 @@ value       |FLOAT4     |true       |              |                     |{prima
 rowid       |INT8       |false      |unique_rowid()|                     |{primary}|true     |
 
 ```
-[Back to Top](##Contenido)
+[Back to Top](#Contenido)
 
 ## B.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
 
@@ -133,6 +133,7 @@ Actividades:
 
 ![gcs_data](https://user-images.githubusercontent.com/46491988/156092574-5c849fca-c90d-4a4c-b593-e75510d547c0.jpg)
 
+[Back to Top](#Contenido)
 
 ## 3.Extracción de la data GCS a una capa de staging BigQuery
 
