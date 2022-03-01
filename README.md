@@ -18,14 +18,14 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[1.Revisando el Data Set Cockroach](#1.Revisando_el_Data_Set_Cockroach)||
 |[2.Creando la sesión de Spark](#1.Extracción_de_la_data_de_Cockroach_a_una_capa_de_staging_Google_Cloud_Storage)||
 |[4.3 Creando tabla pr_products_standard_price](#4.3 Creando tabla pr_products_standard_price)|REGEXP_EXTRACT , REGEXP_REPLACE,TRANSLATE, COL, CONCAT, LAST, JOIN|
-|[4.4 Creando tabla pr_products_avg_price](#4.4 Creando tabla pr_products_avg_price)|COUNTDISTINCT, MEAN|
+|[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
 |[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST,MIN,MAX|
 |[4.6 Creando tabla pr_product_rate_avg](#4.6 Creando tabla pr_product_rate_avg)|xxxxx|
 |[4.8 Creando tabla pr_compras](#4.8 Creando tabla pr_compras)|dddd|
 |[4.9 Creando tabla pr_compras_mensuales](#4.9 Creando tabla pr_compras_mensuales)|dddd|
 |[4.10 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG,SUM,JOIN|
 
-## 1. Revisando el Data Set Cockroach:
+## 1.Revisando el Data Set Cockroach:
 Tablas de data set:
 
 ![image](https://user-images.githubusercontent.com/46491988/156089505-20df6bd0-9f42-4568-b1d8-c49a48b0c12d.png)
