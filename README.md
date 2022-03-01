@@ -16,7 +16,7 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
 |[A.Revisando el Data Set Cockroach](#A-Revisando-el-Data-Set-Cockroach)||
-|[2.Creando la sesión de Spark](#1.Extracción_de_la_data_de_Cockroach_a_una_capa_de_staging_Google_Cloud_Storage)||
+|[B.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#-BExtracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage:)||
 |[D3.Creando tabla de productos](#D3-Creando-tabla-de-productos)|REGEXP_EXTRACT , REGEXP_REPLACE,TRANSLATE, COL, CONCAT, LAST, JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
 |[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST,MIN,MAX|
@@ -110,7 +110,7 @@ rowid       |INT8       |false      |unique_rowid()|                     |{prima
 ```
 [Back to Top](##Contenido)
 
-## 2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
+## B.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
 
 Actividades:
 
