@@ -16,8 +16,8 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
 |[1.Revisando el Data Set Cockroach](#Revisando-el-Data-Set-Cockroach)||
-|[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#)||
-|[4.3.Creando tabla de productos]|REGEXP_EXTRACT , REGEXP_REPLACE,TRANSLATE, COL, CONCAT, LAST, JOIN|
+|[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
+|[4.3.Creando tabla de productos]|REGEXP_EXTRACT , REGEXP_REPLACE,TRANSLATE, COL, CONCAT, LAST,INNER JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
 |[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST,MIN,MAX|
 |[4.6 Creando tabla pr_product_rate_avg](#4.6 Creando tabla pr_product_rate_avg)|xxxxx|
@@ -110,7 +110,7 @@ rowid       |INT8       |false      |unique_rowid()|                     |{prima
 ```
 [Back to Top](#Contenido)
 
-## B.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
+## Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
 
 Actividades:
 
@@ -156,6 +156,7 @@ Captura de pantalla: resultado de nuevo dataset en Bigquery
 ![02](https://user-images.githubusercontent.com/46491988/156097097-b5dbe461-658c-4ae1-968a-1aafc1d1cb93.jpg)
 
 
+[Back to Top](#Contenido)
 
 ## 4 Transformación y limpieza de la data
 
