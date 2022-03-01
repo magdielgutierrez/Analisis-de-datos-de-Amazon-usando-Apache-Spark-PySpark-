@@ -17,13 +17,13 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |:------------------------------------------------------------------------------------|:--------------------|
 |[1.Revisando el Data Set Cockroach](#Revisando-el-Data-Set-Cockroach)||
 |[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
-|[4.3.Creando tabla de productos]|REGEXP_EXTRACT , REGEXP_REPLACE,TRANSLATE, COL, CONCAT, LAST,INNER JOIN|
+|[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
-|[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST,MIN,MAX|
+|[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST, MIN,MAX|
 |[4.6 Creando tabla pr_product_rate_avg](#4.6 Creando tabla pr_product_rate_avg)|xxxxx|
 |[4.8 Creando tabla pr_compras](#4.8 Creando tabla pr_compras)|dddd|
 |[4.9 Creando tabla pr_compras_mensuales](#4.9 Creando tabla pr_compras_mensuales)|dddd|
-|[4.10 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG,SUM,JOIN|
+|[4.10 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
 
 ## Revisando el Data Set Cockroach
 Tablas de data set:
