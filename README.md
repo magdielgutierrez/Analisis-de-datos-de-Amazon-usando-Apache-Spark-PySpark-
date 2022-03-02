@@ -15,7 +15,7 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
-|[1.Revisando el Data Set Cockroach](#1.-Revisando-el-Data-Set-Cockroach)||
+|[1.Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
 |[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
 |[3.Extracción de la data GCS a una capa de staging BigQuery](#3.Extracción de la data GCS a una capa de staging BigQuery)||
 
