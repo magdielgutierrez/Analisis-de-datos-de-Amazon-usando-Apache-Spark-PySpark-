@@ -15,8 +15,10 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
-|[1.Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
+|[1.Revisando el Data Set Cockroach](#1.-Revisando-el-Data-Set-Cockroach)||
 |[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
+|[3.Extracción de la data GCS a una capa de staging BigQuery](#3.Extracción de la data GCS a una capa de staging BigQuery)||
+
 |[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
 |[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST, MIN,MAX|
