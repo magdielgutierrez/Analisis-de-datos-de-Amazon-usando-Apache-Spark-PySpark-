@@ -10,9 +10,13 @@ Se mantienen don fuentes de datos:
 
 2-Dinámica: dataset *amazon_daily_updates*  en Bigquery que diariamente recibe nuevos registros de las compras realizadas en el día, que se agregan a la tabla compras.
 
+<p align="center">
+  Flujo completo:
+  <br><br>
+  <img src="https://user-images.githubusercontent.com/46491988/156366696-fd5d55fe-b0bc-4bd3-bf88-a34948206742.jpg">
+</p>
 
-**Flujo completo:**
-![image](https://user-images.githubusercontent.com/46491988/156277827-d370b00e-c437-49dc-a3fd-8849a1009cc1.png)
+
 
 
 ## Contenido
@@ -24,23 +28,22 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[2. Extracción de la data de Cockroach a una capa de staging GCS](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
 |[3. Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción-de-la-data-GCS-a-una-capa-de-staging-BigQuery)||
 |[4. Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
-|[4.1 Creando la sesión de Spark](#41-Creando-la-sesión-de-Spark)||
-|[4.2 Creando tabla de productos](#42-Creando-tabla-de-productos)|REGEXP_EXTRACT, REGEXP_REPLACE, WHEN, TRANSLATE, COL, GROUP BY, AGG, ORDERBY, CONCAT, LAST, INNER JOIN|
-|[4.3 Creando tabla promedio de precio de productos](#43-Creando-tabla-promedio-de-precio-de-productos)|COUNTDISTINCT, MEAN, GROUP BY, AGG, SORT|
-|[4.4 Creando tabla rango de precios de productos](#44-Creando-tabla-rango-de-precios-de-productos)|GROUP BY, AGG, FIRST, LAST, MIN, MAX|
-|[4.5 Creando tabla promedio de evaluación](#45-Creando-tabla-promedio-de-evaluación)|COUNTDISTINCT, AVG, GROUP BY, AGG|
-|[4.7 Creando tabla de compras](#47-Creando-tabla-de-compras)|deeeeeeeeeeeeeeeeddd|
-|[4.8 Creando tabla de compras anuales](#48-Creando-tabla-de-compras-anuales)|deeeeeeeeeeeeeeeeeeeeeeeeeddd|
-|[4.9 Creando tabla de compras mensuales](#49-Creando-tabla-de-compras-anuales)|dddddddddddddMONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
+|[4.1 Creando tabla de productos](#41-Creando-tabla-de-productos)|REGEXP_EXTRACT, REGEXP_REPLACE, WHEN, TRANSLATE, COL, GROUP BY, AGG, ORDERBY, CONCAT, LAST, INNER JOIN|
+|[4.2 Creando tabla promedio de precio de productos](#42-Creando-tabla-promedio-de-precio-de-productos)|COUNTDISTINCT, MEAN, GROUP BY, AGG, SORT|
+|[4.3 Creando tabla rango de precios de productos](#43-Creando-tabla-rango-de-precios-de-productos)|GROUP BY, AGG, FIRST, LAST, MIN, MAX|
+|[4.4 Creando tabla promedio de evaluación](#44-Creando-tabla-promedio-de-evaluación)|COUNTDISTINCT, AVG, GROUP BY, AGG|
+|[4.5 Creando tabla de compras](#45-Creando-tabla-de-compras)|TODATE, COL|
+|[4.6 Creando tabla de compras anuales](#46-Creando-tabla-de-compras-anuales)|COUNTDISTINCT, MONTH, COUNT, SUM, AVG, WINDOWS, LAG|
+|[4.7 Creando tabla de compras mensuales](#47-Creando-tabla-de-compras-anuales)|YEAR, COUNTDISTINCT, COUNT, SUM, AVG, COL, INNER JOIN|
 |[5. Tabla de hechos](#5-Tabla-de-hechos)|YEAR, SUM, COUNTDISTINCT, GROUPBY, AGG, SORT, COL , INNER JOIN|
-|[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde-BigQuery)|xxxdddd|
+|[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde-BigQuery)||
 |[6.1 Carga de datos de ventas diarios](#61-Carga-de-datos-de-ventas-diarios)|xxxxxx|
 |[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|xxxx|
 |[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|xxx|
 
 
 ## 1. Revisando el Data Set Cockroach
-Tablas de data set:
+Tablas de data set de Amazon:
 
 ![image](https://user-images.githubusercontent.com/46491988/156089505-20df6bd0-9f42-4568-b1d8-c49a48b0c12d.png)
 
@@ -134,13 +137,19 @@ Actividades:
   
   3. Crear una conexión entre la fuente y el destino para extraer las tablas.
 
-**Conexión fuente-destino**
+<p align="center">
+ Conexión fuente-destino
+  <br><br>
+  <img src="https://user-images.githubusercontent.com/46491988/156367928-4a077108-d5de-4fea-aa54-fad637135770.jpg">
+</p>
 
-![airbyte_connection](https://user-images.githubusercontent.com/46491988/156090789-23b854d0-b727-4397-934e-c6cada09d220.jpg)
+<p align="center">
+Archivos CSV en GCS
+  <br><br>
+  <img src="https://user-images.githubusercontent.com/46491988/156092574-5c849fca-c90d-4a4c-b593-e75510d547c0.jpg">
+</p>
 
-**Archivos CSV en GCS**
 
-![gcs_data](https://user-images.githubusercontent.com/46491988/156092574-5c849fca-c90d-4a4c-b593-e75510d547c0.jpg)
 
 [Back to Top](#Contenido)
 
@@ -153,8 +162,7 @@ Actividades:
   1. Crear un dataset nuevo en BigQuery
   2. Crear tablas de con el prefijo stg_{table}
 
-_Actividades ralziadas desde la consola de Google Platform_
-
+_Actividades realizadas desde la consola de Google Platform_
 
 Captura de pantalla: resultado de nuevo dataset en Bigquery
 
@@ -170,24 +178,11 @@ Retos de la data a tranformar
 - Datos tipo BOLEANN a STRING
 - Datos tipo LONG a INT
 - Uso de expresiones regulares para extraer evaluacion de productos dato tipo STRING a DOUBLE
-- Uso de expresiones regulares para eliminar caracteres [coma, puntos, simbolos] de precio de productos dato tipo STRING a DOUBLE
+- Uso de expresiones regulares para eliminar carácteres [coma, puntos, simbolos] de precio de productos dato tipo STRING a DOUBLE
 - Renombrar columnas y nombre de datos en diferentes tablas para cumplir los estándares del _naming convention_
 
 
-### 4.1 Creando la sesión de Spark
-```PySpark
-#Start session Spark
-from pyspark.sql import SparkSession
-from pyspark import SparkContext
-spark = SparkSession.builder \
-  .appName('dataset_amazon') \
-  .config('spark.jars', 'gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar') \
-  .getOrCreate()
-
-spark.conf.set("spark.sql.repl.eagerEval.enabled",True)
-```
-
-### 4.2 Creando tabla de productos
+### 4.1 Creando tabla de productos
 
 La tabla pr_products es creada a partir de stg_products y stg_external_productos
 
@@ -366,7 +361,7 @@ df_full_products.write \
 
 [Back to Top](#Contenido)
 
-### 4.3 Creando tabla promedio de precio de productos
+### 4.2 Creando tabla promedio de precio de productos
 Creamos la tabla pr_products_avg_price , que consite en conocer en cuantos paises se ha vendido un producto y su precio promedio.
 
 ```PySpark
@@ -397,7 +392,7 @@ df_avg_price.write \
   .mode('overwrite') \
   .save()
 ```
-### 4.4 Creando tabla rango de precios de productos
+### 4.3 Creando tabla rango de precios de productos
 Creamos la tabla pr_products_range_price , que consite en conocer en cuantos paises se ha vendido un producto y su precio promedio, asi como tambien su precio
 maximo , minimo y el pais.
 
@@ -473,7 +468,7 @@ df_full_ranges.write \
 ```
 [Back to Top](#Contenido)
 
-### 4.5 Creando tabla promedio de evaluación
+### 4.4 Creando tabla promedio de evaluación
 
 Creando la tabla  que consiste en obtener el promedio de evalucacion de cada producto..
 
@@ -505,7 +500,7 @@ df_product_rate.write \
 
 [Back to Top](#Contenido)
 
-### 4.6 Creando tabla de clientes
+### 4.5 Creando tabla de clientes
 
 
 
@@ -519,7 +514,7 @@ df_product_rate.write \
 ```
 
 [Back to Top](#Contenido)
-### 4.7 Creando tabla de compras
+### 4.6 Creando tabla de compras
 
 La tabla pr_compras  es el resultado de la tablas stg_compras y stg_historico_compras
 
@@ -574,7 +569,7 @@ df_raw_compras.write \
 
 [Back to Top](#Contenido)
 
-### 4.8 Creando tabla de compras anuales
+### 4.7 Creando tabla de compras anuales
 
 
 
@@ -643,7 +638,7 @@ full_table_year.write \
 
 [Back to Top](#Contenido)
 
-### 4.9 Creando tabla de compras mensuales
+### 4.8 Creando tabla de compras mensuales
 
 
 
