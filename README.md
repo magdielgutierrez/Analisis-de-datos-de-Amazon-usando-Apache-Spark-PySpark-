@@ -16,8 +16,10 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
 |[1.Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
-|[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
-|[3.Extracción de la data GCS a una capa de staging BigQuery](#3.Extracción de la data GCS a una capa de staging BigQuery)||
+|[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
+|[3.Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción de la data GCS a una capa de staging BigQuery)||
+|[4.Extracción de la data GCS a una capa de staging BigQuery](#4-Transformación-y-limpieza-de-la-data)||
+
 
 |[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
@@ -112,7 +114,7 @@ rowid       |INT8       |false      |unique_rowid()|                     |{prima
 ```
 [Back to Top](#Contenido)
 
-## Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
+## 2. Extracción de la data de Cockroach a una capa de staging Google Cloud Storage:
 
 Actividades:
 
@@ -137,7 +139,7 @@ Actividades:
 
 [Back to Top](#Contenido)
 
-## 3.Extracción de la data GCS a una capa de staging BigQuery
+## 3. Extracción de la data GCS a una capa de staging BigQuery
 
 **Flujo de trabajo**
 
@@ -160,7 +162,7 @@ Captura de pantalla: resultado de nuevo dataset en Bigquery
 
 [Back to Top](#Contenido)
 
-## 4 Transformación y limpieza de la data
+## 4. Transformación y limpieza de la data
 
 ### 4.1 Creando la sesión de Spark
 ### 4.2 Cargando datos a dataframe
