@@ -29,12 +29,12 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[4.3 Creando tabla promedio de precio de productos](#43-Creando-tabla-promedio-de-precio-de-productos)|COUNTDISTINCT, MEAN, GROUP BY, AGG, SORT|
 |[4.4 Creando tabla rango de precios de productos](#44-Creando-tabla-rango-de-precios-de-productos)|GROUP BY, AGG, FIRST, LAST, MIN, MAX|
 |[4.5 Creando tabla promedio de evaluación](#45-Creando-tabla-promedio-de-evaluación)|COUNTDISTINCT, AVG, GROUP BY, AGG|
-|[4.7 Creando tabla pr_compras](#4.8 Creando tabla pr_compras)|dddd|
-|[4.8 Creando tabla pr_compras_mensuales](#4.9 Creando tabla pr_compras_mensuales)|dddd|
-|[4.9 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
+|[4.7 Creando tabla de compras](#47-Creando-tabla-de-compras)|deeeeeeeeeeeeeeeeddd|
+|[4.8 Creando tabla de compras anuales](#48-Creando-tabla-de-compras-anuales)|deeeeeeeeeeeeeeeeeeeeeeeeeddd|
+|[4.9 Creando tabla de compras mensuales](#49-Creando-tabla-de-compras-anuales)|dddddddddddddMONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
 |[5. Tabla de hechos](#5-Tabla-de-hechos)|YEAR, SUM, COUNTDISTINCT, GROUPBY, AGG, SORT, COL , INNER JOIN|
-|[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde BigQuery)|xxxdddd|
-|[6.1 Carga de datos de ventas diarios](#61-Cargade-datos-de-ventas-diarios)|xxxxxx|
+|[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde-BigQuery)|xxxdddd|
+|[6.1 Carga de datos de ventas diarios](#61-Carga-de-datos-de-ventas-diarios)|xxxxxx|
 |[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|xxxx|
 |[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|xxx|
 
@@ -522,7 +522,7 @@ df_product_rate.write \
 ```
 
 [Back to Top](#Contenido)
-### 4.7 Creando tabla compras
+### 4.7 Creando tabla de compras
 
 
 
