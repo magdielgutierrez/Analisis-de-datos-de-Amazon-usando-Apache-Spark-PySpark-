@@ -187,17 +187,20 @@ spark.conf.set("spark.sql.repl.eagerEval.enabled",True)
 ```
 
 ### 4.2 Creando tabla de productos
+
+La tabla pr_products es creada a partir de stg_products y stg_external_productos
+
 Cargando datos a dataframe:
 ```PySpark
 #name table products
-table_products = "becade_mgutierrez.stg_products"
+table_products = "becade_mgutierrez.stg_products" # or becade_mgutierrez.stg_external_productos
 
 #load table to dataframe
 stg_products = spark.read \
   .format("bigquery") \
   .option("table", table_products) \
   .load()
-  
+   
 #select columns from table
 raw_products = stg_products.select('product_id','country','app_sale_price','evaluate_rate','isbestseller','isprime','app_sale_price_currency')
 
@@ -224,13 +227,16 @@ df_clean_rate = df_raw_products \
 df_clean_products_raw=df_raw_price.select('product_id','country','isbestseller','isprime','app_sale_price_currency','clean_rate',
                                           concat(df_raw_price.number_price,df_raw_price.decimal_price).alias("app_sale_price"))
                                           
+```
+
+Mostrando los resultados de tranformación:
+
+ANTES:
+```PySpark
 
 ```
 
-Mostrando los resultados:
-
-
-
+DESPUES: 
 ```PySpark
 df_clean_products_raw.show(5)
 +----------+-------+------------+-------+-----------------------+----------+--------------+
@@ -242,6 +248,115 @@ df_clean_products_raw.show(5)
 |B00QHC01C2|     NL|       false|   true|                      €|       4.5|         29.72|
 |B01GFJWHZ0|     NL|        true|   true|                      €|       4.5|         21.43|
 +----------+-------+------------+-------+-----------------------+----------+--------------+
+```
+
+Los precios actuales  [app_sale_price] estan en la moneda local de cada pais, necesitos convertirlo en dolar, para ello tenemos la tabla pr_tasas_cambio_pais_anual
+
+Cargando datos a dataframe:
+```PySpark
+#name table exchange
+table_exchange = "becade_mgutierrez.stg_tasas_cambio_pais_anual"
+
+#load table
+stg_exchange = spark.read \
+  .format("bigquery") \
+  .option("table", table_exchange) \
+  .load()
+  
+#select columns from table
+raw_exchange = stg_exchange.select('Alpha_2_code','Alpha_3_code','Country_name','Year','currency','value')
+
+#rename columns
+raw_exchange = raw_exchange.withColumnRenamed('Alpha_2_code','country_code') \
+                           .withColumnRenamed('Alpha_3_code','country_code_iso') \
+                           .withColumnRenamed('Country_name','country_name') \
+                           .withColumnRenamed('Year','year_rate') \
+                           .withColumnRenamed('currency','currency_name') \
+                           .withColumnRenamed('value','value_rate')
+                           
+#group by and select last value_rate 
+df_group_rate = raw_exchange.select('country_code','year_rate','value_rate') \
+        .groupBy('country_code',) \
+        .agg(max('year_rate').alias('max_year'),last('value_rate').alias('value_exchange')) \
+        .orderBy('country_code',asceding=False)
+
+```
+
+Mostramos la tasa de cambia actual para cada pais:
+
+```PySpark
+#Show row exchange
+df_group_rate.show(5)
++------------+--------+--------------+
+|country_code|max_year|value_exchange|
++------------+--------+--------------+
+|          AR|    2020|      70.53917|
+|          AT|    2020|      0.875506|
+|          AU|    2020|      1.453085|
+|          BE|    2020|      0.875506|
+|          BG|    2020|      1.716333|
++------------+--------+--------------+
+```
+
+Ya tenemos una dataframe de productos y otra de tasa de cambias , hacemos un join.
+
+
+```PySpark
+#join dataframe df_clean_products_raw && df_exchange_group
+df_merge_rows = df_group_rate.alias('rate') \
+                .join(df_clean_products_raw.alias('price'), col('price.country') == col('rate.country_code'), "inner")
+                          
+#equivalente en dólares del precio de cada uno de los productos
+df_raw_products=df_merge_rows.withColumn('app_sale_price_us', col('app_sale_price')/col('value_exchange'))
+
+#rename columns
+df_full_products = df_raw_products.withColumnRenamed('isprime','product_is_prime') \
+                           .withColumnRenamed('app_sale_price_currency','product_price_currency') \
+                           .withColumnRenamed('isbestseller','product_is_bestseller') \
+                           .withColumnRenamed('clean_rate','product_rate') \
+                           .withColumnRenamed('app_sale_price','product_price') \
+                           .withColumnRenamed('country_code','product_country') \
+                           .withColumnRenamed('app_sale_price_us','product_price_us')
+```
+Mostramos el resultado:
+
+
+```PySpark
+#Show row exchange
+df_full_products.show(2)
++----------+---------------------+----------------+----------------------+------------+-------------+---------------+------------------+
+|product_id|product_is_bestseller|product_is_prime|product_price_currency|product_rate|product_price|product_country|  product_price_us|
++----------+---------------------+----------------+----------------------+------------+-------------+---------------+------------------+
+|B07FXP7HVS|                 true|           false|                     €|         4.1|        18.19|             IT|20.776556642672926|
+|B077T5RQF7|                 true|            true|                     €|         4.4|        50.48|             IT| 57.65808572414124|
+|B074VMTP68|                 true|            true|                     €|         4.4|        29.99|             DE| 34.25447683967899|
+|B00QHC01C2|                false|            true|                     €|         4.5|        29.72|             NL|33.946083750425466|
+|B01GFJWHZ0|                 true|            true|                     €|         4.5|        21.43|             NL|24.477273713715267|
++----------+---------------------+----------------+----------------------+------------+-------------+---------------+------------------+
+#Display Schema
+df_full_products.printSchema()
+root
+ |-- product_id: string (nullable = true)
+ |-- product_is_bestseller: string (nullable = true)
+ |-- product_is_prime: string (nullable = true)
+ |-- product_price_currency: string (nullable = true)
+ |-- product_rate: double (nullable = true)
+ |-- product_price: double (nullable = true)
+ |-- product_country: string (nullable = true)
+ |-- product_price_us: double (nullable = true)
+```
+
+Finalmente guardamos nuestro dataframe en Bigquery
+
+
+```PySpark
+df_full_products.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_products_standard_price") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
+
 ```
 
 ### 4.4 Creando tabla pr_products_avg_price
