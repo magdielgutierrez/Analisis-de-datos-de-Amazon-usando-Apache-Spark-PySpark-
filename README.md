@@ -413,9 +413,6 @@ df_full_ranges = df_avg_price.alias('A').join(df_price_range.alias('B'), col('A.
 
 ```
 
-
-
-
 Verficamos que los datos sean correctos, buscando un producto en especifico:
 
 ```PySpark
@@ -524,13 +521,55 @@ df_product_rate.write \
 [Back to Top](#Contenido)
 ### 4.7 Creando tabla de compras
 
+La tabla pr_compras  es el resultado de la tablas stg_compras y stg_historico_compras
 
-
-
+Cargamos los datos al dataframe
 ```PySpark
+#name table compras
+table_compras = "becade_mgutierrez.stg_compras" # or stg_historico_compras
+
+#load table
+raw_compras = spark.read \
+  .format("bigquery") \
+  .option("table", table_compras) \
+  .load()
+  
+#selct columns  
+df_raw_compras = raw_compras.select('fecha_compra','client_id','precio','product_id','cantidad','isprime')
+
+#cast
+df_raw_compras = df_raw_compras.withColumn("datetime", to_date("fecha_compra")) \
+                               .withColumn("cantidad",df_raw_compras.cantidad.cast(IntegerType())) \
+                                .withColumn("isprime",df_raw_compras.isprime.cast(StringType()))
+#drop columns                               
+df_raw_compras = df_raw_compras.drop('fecha_compra')
+
+#rename columns
+df_raw_compras = df_raw_compras.withColumnRenamed('datetime','purchase_date') \
+                                .withColumnRenamed('cantidad','product_quantity') \
+                                .withColumnRenamed('precio','product_price') \
+                                .withColumnRenamed('isprime','client_is_prime')
 ```
 
+Resultado:
 ```PySpark
+df_raw_compras.show(2)
++-----------------+-------------+----------+----------------+-------------+
+|        client_id|product_price|product_id|product_quantity|purchase_date|
++-----------------+-------------+----------+----------------+-------------+
+|209-696678-32-117|       236.99|B00N69D6AS|               1|   2018-04-18|
+|209-696678-32-117|       236.99|B00N69D6AS|               1|   2018-05-05|
++-----------------+-------------+----------+----------------+-------------+
+```
+
+Guardando datos en Bigquery:
+```PySpark
+df_raw_compras.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_compras") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
 ```
 
 [Back to Top](#Contenido)
@@ -541,10 +580,67 @@ df_product_rate.write \
 
 
 ```PySpark
+
+#separando fecha en mes y año
+df_new_sales= raw_compras.withColumn('month_sales',month(raw_compras.purchase_date)) \
+                .withColumn('year_sales',year(raw_compras.purchase_date))
+                
+#obtneiendo la cantidad de clientes diferentes que comoraron al año
+#group by year_sales | countDistinct client_id
+df_ordenes_year = df_new_sales.select('year_sales','purchase_date','month_sales','client_id') \
+        .groupBy('year_sales','purchase_date','client_id') \
+        .agg(countDistinct('client_id').alias('total_compras')) \
+        .sort(['year_sales', 'purchase_date'], ascending=True)
+
+#obteniendo el total de ordenes por año
+#sum ordenes by client_id | groupby year_sales | count total_compras
+sum_ordenes_year = df_ordenes_year.select('year_sales','total_compras') \
+        .groupBy('year_sales') \
+        .agg(count('total_compras').alias('total_compras')) \
+        .sort('year_sales', ascending=True)
+   
+#obteniendo el promedio de venta por año y el total de venta por año
+#groupBy year_sales | sum product_price | avg product_price
+df_sales = df_new_sales.select('year_sales','month_sales','product_price','client_id') \
+        .groupBy('year_sales') \
+        .agg(sum('product_price').alias('venta_total_year'), \
+             avg('product_price').alias('avg_venta_mensual')) \
+         .sort('year_sales', ascending=True)
+         
+#InnerJoin df_sales && sum_ordenes_year
+full_table_year = df_sales.alias('A').join(sum_ordenes_year.alias('B'), col('A.year_sales') == col('B.year_sales'), "inner") 
+```
+Resultado
+```PySpark
+full_table_year.show()
++----------+--------------------+------------------+-------------+
+|year_sales|    venta_total_year| avg_venta_mensual|total_compras|
++----------+--------------------+------------------+-------------+
+|      2010|1.8495069750010703E7|104.32923661415366|        32717|
+|      2011|1.8595521430009063E7|104.14100184255835|        32746|
+|      2012| 1.891395686000886E7|104.80852955197692|        32899|
+|      2013| 1.855743942000939E7|103.84979669274121|        32733|
+|      2014|1.8657688250007752E7| 105.1688391664802|        32713|
+|      2015| 1.872384307000746E7|104.68142492945773|        32957|
+|      2016| 1.867335246000713E7|104.62258287908166|        32854|
+|      2017| 1.872034121000714E7|104.20509554746833|        32753|
+|      2018|1.8488971880010866E7|104.16204820233499|        32724|
+|      2019|1.8643064240007747E7|104.42012243827817|        32755|
+|      2020|1.8892210430008642E7|104.74258421676042|        32913|
++----------+--------------------+------------------+-------------+
 ```
 
+Guardando dataframe en Bigquery
+
 ```PySpark
+full_table_year.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_compras_anuales") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
 ```
+
 [Back to Top](#Contenido)
 
 ### 4.9 Creando tabla de compras mensuales
@@ -609,6 +705,13 @@ full_table_fact.show(13)
 |         2020|B08X2K6B1Z| 78747.40000000004|            100|                  1802|             4.8|
 +-------------+----------+------------------+---------------+----------------------+----------------+
 ```
+
+
+Guardando dataframe en Bigquery
+```PySpark
+
+```
+
 [Back to Top](#Contenido)
 
 
