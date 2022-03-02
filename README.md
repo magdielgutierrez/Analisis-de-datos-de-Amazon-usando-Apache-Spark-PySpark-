@@ -37,7 +37,7 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[4.7 Creando tabla de compras mensuales](#47-Creando-tabla-de-compras-anuales)|YEAR, COUNTDISTINCT, COUNT, SUM, AVG, COL, INNER JOIN|
 |[5. Tabla de hechos](#5-Tabla-de-hechos)|YEAR, SUM, COUNTDISTINCT, GROUPBY, AGG, SORT, COL , INNER JOIN|
 |[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde-BigQuery)||
-|[6.1 Carga de datos de ventas diarios](#61-Carga-de-datos-de-ventas-diarios)|xxxxxx|
+|[6.1 Carga de datos de compras diarias](#61-Carga-de-datos-de-compras-diarias)|xxxxxx|
 |[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|xxxx|
 |[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|xxx|
 
@@ -712,12 +712,20 @@ Guardando dataframe en Bigquery
 
 ## 6. Información de cargas incrementales desde BigQuery
 
-```PySpark
-```
+Desarrolla un proceso que lleve los datos incrementales de manera diaria a la tabla de compras en la capa de staging de BigQuery para tener un respaldo de los datos tal cual
+llegan de la fuente, la temporalidad de estos procesos se definen a continuación:
+
+1- Extraer diariamente los datos del día anterior y llevarlos a la capa de staging (stg_compras) de BigQuery.
+
+2- Una vez cada primero del mes podrías realizar la limpieza y transformaciones necesarias para obtener los datos que debes insertar en la tabla de compras_mensuales aplicando esto a todas las compras con fecha del mes anterior.
+
+3- Aplicar una lógica similar a la anterior pero de manera anual en vez de mensual.
+
+La única información que se verá afectada por estos datos incrementales serán los que tengan que ver con la tabla de compras
 
 [Back to Top](#Contenido)
 
-## 6.1 Carga de datos de ventas diarios
+## 6.1 Carga de datos de compras diarias
 
 ```PySpark
 ```
