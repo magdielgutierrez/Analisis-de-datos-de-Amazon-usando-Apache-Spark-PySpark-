@@ -18,7 +18,7 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[1.Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
 |[2.Extracción de la data de Cockroach a una capa de staging GCS](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
 |[3.Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción-de-la-data-GCS-a-una-capa-de-staging-BigQuery)||
-|[Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
+|[4.Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
 |[4.1Creando la sesión de Spark](#41-Creando-la-sesión-de-Spark)||
 |[4.2.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
@@ -186,13 +186,64 @@ spark = SparkSession.builder \
 spark.conf.set("spark.sql.repl.eagerEval.enabled",True)
 ```
 
-### 4.2 Cargando datos a dataframe
+### 4.2 Creando tabla de productos
+Cargando datos a dataframe:
+```PySpark
+#name table products
+table_products = "becade_mgutierrez.stg_products"
 
-dgdggd
-dgdg
-### D3 Creando tabla de productos
-fgggggggg
-gdg
+#load table to dataframe
+stg_products = spark.read \
+  .format("bigquery") \
+  .option("table", table_products) \
+  .load()
+  
+#select columns from table
+raw_products = stg_products.select('product_id','country','app_sale_price','evaluate_rate','isbestseller','isprime','app_sale_price_currency')
+
+#clean column app_sale_price drop values 'None'
+raw_products = raw_products.where(raw_products.app_sale_price != 'None')
+
+# fill empty rows evaluate_rate
+df_raw_products= raw_products.withColumn("evaluate_rate", when(col("evaluate_rate")=="" ,None)  \
+                               .otherwise(col("evaluate_rate"))) 
+                               
+#clean column app_sale_price drop values 'None'
+df_raw_products = df_raw_products.where(df_raw_products.evaluate_rate != "None")
+
+#drop duplicates rows products
+df_raw_products = df_raw_products.dropDuplicates()
+
+
+#clean column evaluate_rate extract format {n.n} &&  replace characters {,} by {.}
+df_clean_rate = df_raw_products \
+                .withColumn('clean_rate', regexp_extract(col('evaluate_rate'), r'([0-9][\.\,][0-9])',1)) \
+                .withColumn('clean_rate', translate(col('clean_rate'), ',', '.'))
+                
+#concat columns  number_price + decimal_price = app_sale_price_us
+df_clean_products_raw=df_raw_price.select('product_id','country','isbestseller','isprime','app_sale_price_currency','clean_rate',
+                                          concat(df_raw_price.number_price,df_raw_price.decimal_price).alias("app_sale_price"))
+                                          
+
+```
+
+Mostrando los resultados:
+
+
+
+```PySpark
+df_clean_products_raw.show(5)
++----------+-------+------------+-------+-----------------------+----------+--------------+
+|product_id|country|isbestseller|isprime|app_sale_price_currency|clean_rate|app_sale_price|
++----------+-------+------------+-------+-----------------------+----------+--------------+
+|B07FXP7HVS|     IT|        true|  false|                      €|       4.1|         18.19|
+|B077T5RQF7|     IT|        true|   true|                      €|       4.4|         50.48|
+|B074VMTP68|     DE|        true|   true|                      €|       4.4|         29.99|
+|B00QHC01C2|     NL|       false|   true|                      €|       4.5|         29.72|
+|B01GFJWHZ0|     NL|        true|   true|                      €|       4.5|         21.43|
++----------+-------+------------+-------+-----------------------+----------+--------------+
+```
+
 ### 4.4 Creando tabla pr_products_avg_price
 ### 4.5 Creando tabla pr_products_price_ranges
 ### 4.6 Creando tabla pr_product_rate_avg
