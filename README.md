@@ -29,9 +29,15 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[4.3 Creando tabla promedio de precio de productos](#43-Creando-tabla-promedio-de-precio-de-productos)|COUNTDISTINCT, MEAN, GROUP BY, AGG, SORT|
 |[4.4 Creando tabla rango de precios de productos](#44-Creando-tabla-rango-de-precios-de-productos)|GROUP BY, AGG, FIRST, LAST, MIN, MAX|
 |[4.5 Creando tabla promedio de evaluación](#45-Creando-tabla-promedio-de-evaluación)|COUNTDISTINCT, AVG, GROUP BY, AGG|
-|[4.8 Creando tabla pr_compras](#4.8 Creando tabla pr_compras)|dddd|
-|[4.9 Creando tabla pr_compras_mensuales](#4.9 Creando tabla pr_compras_mensuales)|dddd|
-|[4.10 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
+|[4.7 Creando tabla pr_compras](#4.8 Creando tabla pr_compras)|dddd|
+|[4.8 Creando tabla pr_compras_mensuales](#4.9 Creando tabla pr_compras_mensuales)|dddd|
+|[4.9 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
+|[5. Tabla de hechos](#5-Tabla-de-hechos)|YEAR, SUM, COUNTDISTINCT, GROUPBY, AGG, SORT, COL , INNER JOIN|
+|[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde BigQuery)|xxxdddd|
+|[6.1 Carga de datos de ventas diarios](#61-Cargade-datos-de-ventas-diarios)|xxxxxx|
+|[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|xxxx|
+|[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|xxx|
+
 
 ## 1. Revisando el Data Set Cockroach
 Tablas de data set:
@@ -128,26 +134,17 @@ Actividades:
   
   3. Crear una conexión entre la fuente y el destino para extraer las tablas.
 
-
-**Flujo de Trabajo**
-
-![image](https://user-images.githubusercontent.com/46491988/156093345-8ce8ad19-7391-4448-b2d7-fe5b66100a54.png)
-
-**Captura de pantalla: conexión fuente-destino**
+**Conexión fuente-destino**
 
 ![airbyte_connection](https://user-images.githubusercontent.com/46491988/156090789-23b854d0-b727-4397-934e-c6cada09d220.jpg)
 
-**Captura de pantalla: archivos CSV en GCS**
+**Archivos CSV en GCS**
 
 ![gcs_data](https://user-images.githubusercontent.com/46491988/156092574-5c849fca-c90d-4a4c-b593-e75510d547c0.jpg)
 
 [Back to Top](#Contenido)
 
 ## 3. Extracción de la data GCS a una capa de staging BigQuery
-
-**Flujo de trabajo**
-
-![01](https://user-images.githubusercontent.com/46491988/156093553-73fa4846-33e4-407e-86ef-fcf56fd7d6d7.jpg)
 
 Se realiza la extracción de los archivos CSV bucket amazon_magdielgutierrez y zophia-proyecto-final-de a dataset en becade_mgutierrez en Bigquery
   
@@ -509,8 +506,24 @@ df_product_rate.write \
   .save()
 ```
 
+[Back to Top](#Contenido)
 
-### 4.7 Creando tabla pr_clients
+### 4.6 Creando tabla de clientes
+
+
+
+```PySpark
+```
+
+```PySpark
+```
+
+```PySpark
+```
+
+[Back to Top](#Contenido)
+### 4.7 Creando tabla compras
+
 
 
 
@@ -520,9 +533,9 @@ df_product_rate.write \
 ```PySpark
 ```
 
-```PySpark
-```
-### 4.8 Creando tabla pr_compras
+[Back to Top](#Contenido)
+
+### 4.8 Creando tabla de compras anuales
 
 
 
@@ -532,7 +545,9 @@ df_product_rate.write \
 
 ```PySpark
 ```
-### 4.9 Creando tabla pr_compras_mensuales
+[Back to Top](#Contenido)
+
+### 4.9 Creando tabla de compras mensuales
 
 
 
@@ -542,16 +557,7 @@ df_product_rate.write \
 
 ```PySpark
 ```
-### 4.10 Creando tabla pr_compras_anuales
-
-
-
-
-```PySpark
-```
-
-```PySpark
-```
+[Back to Top](#Contenido)
 
 ## 5 Tabla de hechos
 
@@ -564,15 +570,72 @@ Desempeño de ventas por producto a nivel anual, es decir la cantidad total obte
 ● El evaluation_rating actual del producto
 
 
+```PySpark
+#separamos la fecha en años
+df_fact_raw= raw_compras.withColumn('purchase_year',year(raw_compras.purchase_date)) 
+
+#groupby by purchase_year and product_id | sum product_price | countDistinct client_id | sum product_quantity
+df_fact_sales = df_fact_raw.select('*') \
+                .groupBy('purchase_year','product_id') \
+                .agg(sum('product_price').alias('purchase_sales'),
+                     countDistinct('client_id').alias('client_quantity'), 
+                     sum('product_quantity').alias('product_quantity_sales') ) \
+                .sort(['purchase_year', 'product_id'], ascending=False)
+                
+#InnerJoin df_fact_sales &&  raw_rate
+full_table_fact = df_fact_sales.alias('A').join(raw_rate.alias('B'), \
+                (col('A.product_id') == col('B.product_id')) , "inner") 
+                 
+```
+Resultado:
+
+```PySpark
+full_table_fact.show(13)
++-------------+----------+------------------+---------------+----------------------+----------------+
+|purchase_year|product_id|    purchase_sales|client_quantity|product_quantity_sales|product_avg_rate|
++-------------+----------+------------------+---------------+----------------------+----------------+
+|         2020|B09FM7CKG1| 56771.82000000001|            100|                  1959|             3.6|
+|         2020|B09FCXXGT5|112020.12000000007|            100|                  3749|             4.8|
+|         2020|B09BNK4592|111496.56000000007|            100|                  1862|             4.7|
+|         2020|B098RKWHHZ| 695430.1299999999|            100|                  1987|             4.8|
+|         2020|B098P1M628| 551117.1599999984|            100|                 11484|             3.9|
+|         2020|B097Y38X79| 537275.8800000008|            100|                 11532|             3.9|
+|         2020|B0975P2RBR| 79900.01999999999|            100|                  1998|             3.6|
+|         2020|B0931NN4PR|          195552.0|            100|                  2016|             4.8|
+|         2020|B0914YGQSH|117304.92000000004|            100|                  1959|             4.6|
+|         2020|B08ZS9PQ78| 87760.38000000005|            100|                  9762|             4.6|
+|         2020|B08Z11QHBG| 686016.0399999997|            100|                  1966|             4.8|
+|         2020|B08XXWHLQF|49484.959999999985|            100|                  1904|             4.1|
+|         2020|B08X2K6B1Z| 78747.40000000004|            100|                  1802|             4.8|
++-------------+----------+------------------+---------------+----------------------+----------------+
+```
+[Back to Top](#Contenido)
+
+
+## 6. Información de cargas incrementales desde BigQuery
 
 ```PySpark
 ```
 
+[Back to Top](#Contenido)
+
+## 6.1 Carga de datos de ventas diarios
+
 ```PySpark
 ```
 
-## 6 Agregar información de cargas incrementales
+[Back to Top](#Contenido)
 
+## 6.2 Calculo de compras anuales
+```PySpark
+```
+[Back to Top](#Contenido)
+
+## 6.3 Calculo de compras mensuales
+
+```PySpark
+```
+[Back to Top](#Contenido)
 
 
 
