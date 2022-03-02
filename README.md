@@ -38,8 +38,8 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[5. Tabla de hechos](#5-Tabla-de-hechos)|YEAR, SUM, COUNTDISTINCT, GROUPBY, AGG, SORT, COL , INNER JOIN|
 |[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde-BigQuery)||
 |[6.1 Carga de datos de compras diarias](#61-Carga-de-datos-de-compras-diarias)|FILTER, CAST|
-|[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|DATE_TRUNC, ADD_MONTHS, COL, MONTH, YEAR, GROUPBY, AGG,COUNT, COUNTDISTINCT, SUM, AVG, INNER JOIN, SORT|
-|[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|DATE_TRUNC, ADD_MONTHS, COL, MONTH, YEAR, GROUPBY, AGG, COUNT, COUNTDISTINCT, SUM, AVG, INNER JOIN|
+|[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|FILTER, DATE_TRUNC, ADD_MONTHS, COL, MONTH, YEAR, GROUPBY, AGG,COUNT, COUNTDISTINCT, SUM, AVG, INNER JOIN, SORT|
+|[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|FILTER, DATE_TRUNC, ADD_MONTHS, COL, MONTH, YEAR, GROUPBY, AGG, COUNT, COUNTDISTINCT, SUM, AVG, INNER JOIN|
 
 
 ## 1. Revisando el Data Set Cockroach
