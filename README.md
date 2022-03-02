@@ -15,13 +15,13 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
-|[1.Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
-|[2.Extracción de la data de Cockroach a una capa de staging GCS](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
-|[3.Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción-de-la-data-GCS-a-una-capa-de-staging-BigQuery)||
-|[4.Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
-|[4.1Creando la sesión de Spark](#41-Creando-la-sesión-de-Spark)||
-|[4.2.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
-|[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
+|[1. Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
+|[2. Extracción de la data de Cockroach a una capa de staging GCS](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
+|[3. Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción-de-la-data-GCS-a-una-capa-de-staging-BigQuery)||
+|[4. Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
+|[4.1 Creando la sesión de Spark](#41-Creando-la-sesión-de-Spark)||
+|[4.2 Creando tabla de productos](#42-Creando-tabla-de-productos)|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
+|[4.3.Cdreando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
 |[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST, MIN,MAX|
 |[4.6 Creando tabla pr_product_rate_avg](#4.6 Creando tabla pr_product_rate_avg)|xxxxx|
@@ -309,6 +309,7 @@ df_merge_rows = df_group_rate.alias('rate') \
 #equivalente en dólares del precio de cada uno de los productos
 df_raw_products=df_merge_rows.withColumn('app_sale_price_us', col('app_sale_price')/col('value_exchange'))
 
+
 #rename columns
 df_full_products = df_raw_products.withColumnRenamed('isprime','product_is_prime') \
                            .withColumnRenamed('app_sale_price_currency','product_price_currency') \
@@ -317,9 +318,14 @@ df_full_products = df_raw_products.withColumnRenamed('isprime','product_is_prime
                            .withColumnRenamed('app_sale_price','product_price') \
                            .withColumnRenamed('country_code','product_country') \
                            .withColumnRenamed('app_sale_price_us','product_price_us')
+                           
+ #cast type                          
+df_full_products = df_full_products.withColumn("product_price",df_full_products.product_price.cast(DoubleType()))  \
+                                    .withColumn("product_rate",df_full_products.product_rate.cast(DoubleType())) \
+                                    .withColumn("product_is_bestseller",df_full_products.product_is_bestseller.cast(StringType())) \
+                                    .withColumn("product_is_prime",df_full_products.product_is_prime.cast(StringType())) 
 ```
-Mostramos el resultado:
-
+Mostramos el resultado y esquema de dataframe:
 
 ```PySpark
 #Show row exchange
@@ -358,6 +364,8 @@ df_full_products.write \
   .save()
 
 ```
+
+[Back to Top](#Contenido)
 
 ### 4.4 Creando tabla pr_products_avg_price
 ### 4.5 Creando tabla pr_products_price_ranges
