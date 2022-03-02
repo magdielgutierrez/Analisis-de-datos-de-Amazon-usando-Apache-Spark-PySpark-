@@ -19,7 +19,7 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
 |[3.Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción de la data GCS a una capa de staging BigQuery)||
 |[4.Extracción de la data GCS a una capa de staging BigQuery](#4-Transformación-y-limpieza-de-la-data)||
-|[4.1.Creando la sesión de Spark](#4.1-Creando-la-sesión-de-Spark)||
+|[4.1Creando la sesión de Spark](#4.1-Creando-la-sesión-de-Spark)||
 |[4.2.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
