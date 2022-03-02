@@ -10,6 +10,11 @@ Se mantienen don fuentes de datos:
 
 2-Dinámica: dataset *amazon_daily_updates*  en Bigquery que diariamente recibe nuevos registros de las compras realizadas en el día, que se agregan a la tabla compras.
 
+
+**Flujo completo:**
+![image](https://user-images.githubusercontent.com/46491988/156277827-d370b00e-c437-49dc-a3fd-8849a1009cc1.png)
+
+
 ## Contenido
 Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK SQL se uso.
 
@@ -20,11 +25,10 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[3. Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción-de-la-data-GCS-a-una-capa-de-staging-BigQuery)||
 |[4. Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
 |[4.1 Creando la sesión de Spark](#41-Creando-la-sesión-de-Spark)||
-|[4.2 Creando tabla de productos](#42-Creando-tabla-de-productos)|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
-|[4.3.Cdreando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
-|[4.4 Creando tabla pr_products_avg_price](#4.4Creando_tabla_pr_products_avg_price)|COUNTDISTINCT, MEAN|
-|[4.5 Creando tabla pr_products_price_ranges](#4.5 Creando tabla pr_products_price_ranges)|FIRST, LAST, MIN,MAX|
-|[4.6 Creando tabla pr_product_rate_avg](#4.6 Creando tabla pr_product_rate_avg)|xxxxx|
+|[4.2 Creando tabla de productos](#42-Creando-tabla-de-productos)|REGEXP_EXTRACT, REGEXP_REPLACE, WHEN, TRANSLATE, COL, GROUP BY, AGG, ORDERBY, CONCAT, LAST, INNER JOIN|
+|[4.3 Creando tabla promedio de precio de productos](#43-Creando-tabla-promedio-de-precio-de-productos)|COUNTDISTINCT, MEAN, GROUP BY, AGG, SORT|
+|[4.4 Creando tabla rango de precios de productos](#44-Creando-tabla-rango-de-precios-de-productos)|GROUP BY, AGG, FIRST, LAST, MIN, MAX|
+|[4.5 Creando tabla promedio de evaluación](#45-Creando-tabla-promedio-de-evaluación)|COUNTDISTINCT, AVG, GROUP BY, AGG|
 |[4.8 Creando tabla pr_compras](#4.8 Creando tabla pr_compras)|dddd|
 |[4.9 Creando tabla pr_compras_mensuales](#4.9 Creando tabla pr_compras_mensuales)|dddd|
 |[4.10 Creando tabla pr_compras_anuales](#4.10 Creando tabla pr_compras_anuales)|MONTH, YEAR, COL, SORT, COUNTDISTINCT, COUNT, AVG, SUM, INNER JOIN|
@@ -298,8 +302,7 @@ df_group_rate.show(5)
 +------------+--------+--------------+
 ```
 
-Ya tenemos una dataframe de productos y otra de tasa de cambias , hacemos un join.
-
+Ya tenemos una dataframe de productos y otra de tasa de cambios , hacemos un join.
 
 ```PySpark
 #join dataframe df_clean_products_raw && df_exchange_group
@@ -352,8 +355,7 @@ root
  |-- product_price_us: double (nullable = true)
 ```
 
-Finalmente guardamos nuestro dataframe en Bigquery
-
+Guardamos nuestro dataframe en Bigquery
 
 ```PySpark
 df_full_products.write \
@@ -367,13 +369,189 @@ df_full_products.write \
 
 [Back to Top](#Contenido)
 
-### 4.4 Creando tabla pr_products_avg_price
-### 4.5 Creando tabla pr_products_price_ranges
-### 4.6 Creando tabla pr_product_rate_avg
+### 4.3 Creando tabla promedio de precio de productos
+Creamos la tabla pr_products_avg_price , que consite en conocer en cuantos paises se ha vendido un producto y su precio promedio.
+
+```PySpark
+#calculated avg product_price_us && count product_country
+df_avg_price=pr_products_price.select('product_id','product_price_us','product_country') \
+        .groupBy('product_id') \
+        .agg(mean('product_price_us').alias('product_avg_price_us'),countDistinct('product_country').alias('country_count')).sort('country_count', ascending=False)
+```
+
+Resultado:
+```PySpark
+#Show row products   
+df_avg_price.show(3)
++----------+--------------------+-------------+
+|product_id|product_avg_price_us|country_count|
++----------+--------------------+-------------+
+|B00MNV8E0C|   24.73453126271878|            7|
+|B007B9NV8Q|  20.634105088517593|            7|
+|B00X4SCCFG|  17.748030361843725|            6|
++----------+--------------------+-------------+
+```
+Guardamos el dataframe en Bigquery
+```PySpark
+df_avg_price.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_products_avg_price") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
+```
+### 4.4 Creando tabla rango de precios de productos
+Creamos la tabla pr_products_range_price , que consite en conocer en cuantos paises se ha vendido un producto y su precio promedio, asi como tambien su precio
+maximo , minimo y el pais.
+
+```PySpark
+#operations min_price && max_price
+df_price_range=pr_products_price.select('product_id','product_country','product_price_us') \
+        .groupBy('product_id') \
+        .agg(min('product_price_us').alias('product_min_price'),first('product_country').alias('country_mix_price'), \
+            max('product_price_us').alias('product_max_price'),last('product_country').alias('country_max_price'))  
+            
+#InnerJoin de dataframe df_avg_price && df_price_range
+df_full_ranges = df_avg_price.alias('A').join(df_price_range.alias('B'), col('A.product_id') == col('B.product_id'), "inner") 
+
+```
+
+
+
+
+Verficamos que los datos sean correctos, buscando un producto en especifico:
+
+```PySpark
+#List product test
+pr_products_price.filter(pr_products_price.product_id == "B00MNV8E0C").show(truncate=False)
++----------+---------------------+----------------+----------------------+------------+-------------+---------------+------------------+
+|product_id|product_is_bestseller|product_is_prime|product_price_currency|product_rate|product_price|product_country|product_price_us  |
++----------+---------------------+----------------+----------------------+------------+-------------+---------------+------------------+
+|B00MNV8E0C|true                 |false           |                      |4.3         |1146.0       |JP             |10.732891667660974|
+|B00MNV8E0C|true                 |false           |€                     |4.6         |76.76        |DE             |87.67501307815138 |
+|B00MNV8E0C|true                 |true            |₹                     |4.6         |1179.0       |IN             |15.909874809931647|
+|B00MNV8E0C|true                 |false           |€                     |4.6         |13.79        |IT             |15.750891484467267|
+|B00MNV8E0C|false                |true            |€                     |4.6         |11.69        |NL             |13.352278568050933|
+|B00MNV8E0C|false                |false           |£                     |4.7         |11.49        |GB             |14.73076923076923 |
+|B00MNV8E0C|true                 |true            |$                     |4.7         |14.99        |US             |14.99             |
++----------+---------------------+----------------+----------------------+------------+-------------+---------------+------------------+
+
+#TEST PRODUCT
+df_full_ranges.filter(df_full_ranges.product_id == "B00MNV8E0C").show(truncate=False)
++----------+-------------+--------------------+-----------------+-----------------+------------------+-----------------+
+|product_id|country_count|product_avg_price_us|product_max_price|country_max_price|product_min_price |country_mix_price|
++----------+-------------+--------------------+-----------------+-----------------+------------------+-----------------+
+|B00MNV8E0C|7            |24.73453126271878   |87.67501307815138|US               |10.732891667660974|JP               |
++----------+-------------+--------------------+-----------------+-----------------+------------------+-----------------+
+```
+
+Resultado:
+```PySpark
+#Show row mergedf_merge_rows
+df_full_ranges.show(2)
+
+#Show schema
+df_full_ranges.printSchema()
++----------+-------------+--------------------+-----------------+-----------------+-----------------+-----------------+
+|product_id|country_count|product_avg_price_us|product_max_price|country_max_price|product_min_price|country_mix_price|
++----------+-------------+--------------------+-----------------+-----------------+-----------------+-----------------+
+|B09S5G7BXW|            1|                 0.0|              0.0|               US|              0.0|               US|
+|B09S2RQ19K|            1|               99.99|            99.99|               US|            99.99|               US|
++----------+-------------+--------------------+-----------------+-----------------+-----------------+-----------------+
+root
+ |-- product_id: string (nullable = true)
+ |-- country_count: long (nullable = false)
+ |-- product_avg_price_us: double (nullable = true)
+ |-- product_max_price: double (nullable = true)
+ |-- country_max_price: string (nullable = true)
+ |-- product_min_price: double (nullable = true)
+ |-- country_mix_price: string (nullable = true)
+```
+
+Guardamos el dataframe en Bigquery
+```PySpark
+df_full_ranges.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_products_range_price") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
+```
+[Back to Top](#Contenido)
+
+### 4.5 Creando tabla promedio de evaluación
+
+Creando la tabla  que consiste en obtener el promedio de evalucacion de cada producto..
+
+```PySpark
+#operations avg evaluate_rate products
+df_product_rate=pr_products_price.select('product_id','product_country','product_rate') \
+        .groupBy('product_id') \
+        .agg(avg('product_rate').alias('product_avg_rate'),countDistinct('product_country').alias('country_count')) 
+```
+Resultado:
+```PySpark
+df_product_rate.show(2)
++----------+----------------+-------------+
+|product_id|product_avg_rate|country_count|
++----------+----------------+-------------+
+|B08J3QQ11H|             4.6|            1|
+|9804370085|             4.8|            1|
++----------+----------------+-------------+
+```
+Guardando dataframe en Bigquery
+```PySpark
+df_product_rate.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_product_avg_rate") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
+```
+
+
 ### 4.7 Creando tabla pr_clients
+
+
+
+```PySpark
+```
+
+```PySpark
+```
+
+```PySpark
+```
 ### 4.8 Creando tabla pr_compras
+
+
+
+
+```PySpark
+```
+
+```PySpark
+```
 ### 4.9 Creando tabla pr_compras_mensuales
+
+
+
+
+```PySpark
+```
+
+```PySpark
+```
 ### 4.10 Creando tabla pr_compras_anuales
+
+
+
+
+```PySpark
+```
+
+```PySpark
+```
 
 ## 5 Tabla de hechos
 
@@ -385,6 +563,13 @@ Desempeño de ventas por producto a nivel anual, es decir la cantidad total obte
 
 ● El evaluation_rating actual del producto
 
+
+
+```PySpark
+```
+
+```PySpark
+```
 
 ## 6 Agregar información de cargas incrementales
 
