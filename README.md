@@ -37,9 +37,9 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 |[4.7 Creando tabla de compras mensuales](#47-Creando-tabla-de-compras-anuales)|YEAR, COUNTDISTINCT, COUNT, SUM, AVG, COL, INNER JOIN|
 |[5. Tabla de hechos](#5-Tabla-de-hechos)|YEAR, SUM, COUNTDISTINCT, GROUPBY, AGG, SORT, COL , INNER JOIN|
 |[6. Información de cargas incrementales desde BigQuery](#6-Información-de-cargas-incrementales-desde-BigQuery)||
-|[6.1 Carga de datos de compras diarias](#61-Carga-de-datos-de-compras-diarias)|xxxxxx|
-|[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|xxxx|
-|[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|xxx|
+|[6.1 Carga de datos de compras diarias](#61-Carga-de-datos-de-compras-diarias)|FILTER, CAST|
+|[6.2 Calculo de compras anuales](#62-Calculo-de-compras-anuales)|DATE_TRUNC, ADD_MONTHS, COL, MONTH, YEAR, GROUPBY, AGG,COUNT, COUNTDISTINCT, SUM, AVG, INNER JOIN, SORT|
+|[6.3 Calculo de compras mensuales](#63-Calculo-de-compras-mensuales)|DATE_TRUNC, ADD_MONTHS, COL, MONTH, YEAR, GROUPBY, AGG, COUNT, COUNTDISTINCT, SUM, AVG, INNER JOIN|
 
 
 ## 1. Revisando el Data Set Cockroach
@@ -572,8 +572,6 @@ df_raw_compras.write \
 ### 4.7 Creando tabla de compras anuales
 
 
-
-
 ```PySpark
 
 #separando fecha en mes y año
@@ -644,9 +642,58 @@ full_table_year.write \
 
 
 ```PySpark
+###compras por Mes
+df_ordenes_month = df_new_sales.select('year_sales','purchase_date','month_sales','client_id') \
+        .groupBy('year_sales','month_sales','purchase_date','client_id') \
+        .agg(countDistinct('client_id').alias('total_compras')) \
+        .sort(['year_sales', 'purchase_date'], ascending=True)
+ 
+ sum_ordenes_month = df_ordenes_month.select('year_sales','month_sales','total_compras') \
+        .groupBy('year_sales','month_sales') \
+        .agg(count('total_compras').alias('total_compras_mes')) \
+        .sort(['year_sales','month_sales'], ascending=True)
+        
+df_month = df_new_sales.select('year_sales','month_sales','product_price') \
+        .groupBy('year_sales','month_sales') \
+        .agg(sum('product_price').alias('venta_total_mes')) \
+        .sort(['year_sales','month_sales'], ascending=True)
+ 
+ df_month_raw = df_month.withColumn('venta_total_mes_anterior',lag(df_month['venta_total_mes']).over(Window.orderBy("month_sales","year_sales")))
+ 
+ df_month_raw= df_month_raw.na.fill(value=0,subset=["venta_total_mes_anterior"])
+ 
+ full_table_month = df_month_raw.alias('A').join(sum_ordenes_month.alias('B'), \
+                (col('A.month_sales') == col('B.month_sales')) & (col('A.year_sales') == col('B.year_sales')) , "inner") 
 ```
 
 ```PySpark
+full_table_month.show(13)
++----------+-----------+------------------+------------------------+-----------------+
+|year_sales|month_sales|   venta_total_mes|venta_total_mes_anterior|total_compras_mes|
++----------+-----------+------------------+------------------------+-----------------+
+|      2010|          1|1241494.2399999024|                     0.0|             2618|
+|      2011|          1|1220903.2599999004|      1241494.2399999024|             2586|
+|      2012|          1|1207546.9799999103|      1220903.2599999004|             2577|
+|      2013|          1|1229377.7699999062|      1207546.9799999103|             2569|
+|      2014|          1|1288639.0199998915|      1229377.7699999062|             2602|
+|      2015|          1|1270299.0199999036|      1288639.0199998915|             2630|
+|      2016|          1|1345551.9299998868|      1270299.0199999036|             2619|
+|      2017|          1|1145680.2099999334|      1345551.9299998868|             2529|
+|      2018|          1|1198162.2299999034|      1145680.2099999334|             2555|
+|      2019|          1|1221042.8499999032|      1198162.2299999034|             2605|
+|      2020|          1|1253193.3999999021|      1221042.8499999032|             2610|
+|      2010|          2|1230857.7399999062|      1253193.3999999021|             2406|
+|      2011|          2|1168152.5199999078|      1230857.7399999062|             2401|
++----------+-----------+------------------+------------------------+-----------------+
+```
+
+```PySpark
+full_table_month.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_compras_mensuales") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
 ```
 [Back to Top](#Contenido)
 
@@ -704,7 +751,12 @@ full_table_fact.show(13)
 
 Guardando dataframe en Bigquery
 ```PySpark
-
+raw_compras_historico.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_fact_compras") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('append') \
+  .save()
 ```
 
 [Back to Top](#Contenido)
@@ -728,18 +780,79 @@ La única información que se verá afectada por estos datos incrementales será
 ## 6.1 Carga de datos de compras diarias
 
 ```PySpark
-```
+# # #filter data previus day
+raw_previus_day= raw_compras.filter(raw_compras.fecha_compra == date_sub(current_date(),1))
 
+raw_previus_day = raw_previus_day.select('fecha_compra','client_id','precio','product_id','cantidad','isprime')
+
+raw_previus_day = raw_previus_day.withColumn("cantidad",raw_previus_day.cantidad.cast(IntegerType())) \
+                                .withColumn("isprime",raw_previus_day.isprime.cast(StringType()))
+                                
+#rename columns
+raw_previus_final = raw_previus_day.withColumnRenamed('fecha_compra','purchase_date') \
+                                .withColumnRenamed('cantidad','product_quantity') \
+                                .withColumnRenamed('precio','product_price') \
+                               .withColumnRenamed('isprime','client_is_prime')  
+
+
+```
+Guardamos dataset
+```PySpark
+raw_previus_day.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_compras") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('append') \
+  .save()
+
+```
 [Back to Top](#Contenido)
 
 ## 6.2 Calculo de compras anuales
 ```PySpark
+df_sales_current_year = raw_current_year.filter(  (date_trunc("month", col("purchase_date")) != date_trunc("month", current_date())) &
+                                                (date_trunc("year", col("purchase_date")) == date_trunc("year", current_date())))
+ 
+ 
+df_new_sales= df_sales_current_year.withColumn('month_sales',month(df_sales_current_year.purchase_date)) \
+                .withColumn('year_sales',year(df_sales_current_year.purchase_date))
+
+df_ordenes_year = df_new_sales.select('year_sales','purchase_date','month_sales','client_id') \
+        .groupBy('year_sales','purchase_date','client_id') \
+        .agg(countDistinct('client_id').alias('total_compras')) \
+        .sort(['year_sales', 'purchase_date'], ascending=True)
+        
+ sum_ordenes_year = df_ordenes_year.select('year_sales','total_compras') \
+        .groupBy('year_sales') \
+        .agg(count('total_compras').alias('total_compras')) \
+        .sort('year_sales', ascending=True)       
+
+df_sales = df_new_sales.select('year_sales','month_sales','product_price','client_id') \
+        .groupBy('year_sales') \
+        .agg(sum('product_price').alias('venta_total_year'), \
+             avg('product_price').alias('avg_venta_mensual')) \
+         .sort('year_sales', ascending=True)
+         
+#InnerJoin
+full_table_year = df_sales.alias('A').join(sum_ordenes_year.alias('B'), col('A.year_sales') == col('B.year_sales'), "inner") 
+
+```
+
+Guardamos dataframe *****
+```PySpark
+full_table_year.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_compras_anuales") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('append') \
+  .save()
 ```
 [Back to Top](#Contenido)
 
 ## 6.3 Calculo de compras mensuales
 
 ```PySpark
+
 ```
 [Back to Top](#Contenido)
 
