@@ -16,9 +16,9 @@ Una breve sinopsis de lo que es cada caso de uso y qué funcionalidad de SPARK S
 | Sección                                                                             |        Funciones |
 |:------------------------------------------------------------------------------------|:--------------------|
 |[1.Revisando el Data Set Cockroach](#1-Revisando-el-Data-Set-Cockroach)||
-|[2.Extracción de la data de Cockroach a una capa de staging Google Cloud Storage](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
+|[2.Extracción de la data de Cockroach a una capa de staging GCS](#2-Extracción-de-la-data-de-Cockroach-a-una-capa-de-staging-Google-Cloud-Storage)||
 |[3.Extracción de la data GCS a una capa de staging BigQuery](#3-Extracción-de-la-data-GCS-a-una-capa-de-staging-BigQuery)||
-|[4.Extracción de la data GCS a una capa de staging BigQuery](#4-Transformación-y-limpieza-de-la-data)||
+|[Transformación y limpieza de la data](#4-Transformación-y-limpieza-de-la-data)||
 |[4.1Creando la sesión de Spark](#41-Creando-la-sesión-de-Spark)||
 |[4.2.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
 |[4.3.Creando tabla de productos]|REGEXP_EXTRACT, REGEXP_REPLACE, TRANSLATE, COL, CONCAT, LAST, INNER JOIN|
@@ -164,7 +164,28 @@ Captura de pantalla: resultado de nuevo dataset en Bigquery
 
 ## 4. Transformación y limpieza de la data
 
+Retos de la data a tranformar
+- Formato de fecha TIMESTAMP a DATE
+- Datos tipo BOLEANN a STRING
+- Datos tipo LONG a INT
+- Uso de expresiones regulares para extraer evaluacion de productos dato tipo STRING a DOUBLE
+- Uso de expresiones regulares para eliminar caracteres [coma, puntos, simbolos] de precio de productos dato tipo STRING a DOUBLE
+- Renombrar columnas y nombre de datos en diferentes tablas para cumplir los estándares del _naming convention_
+
+
 ### 4.1 Creando la sesión de Spark
+```PySpark
+#Start session Spark
+from pyspark.sql import SparkSession
+from pyspark import SparkContext
+spark = SparkSession.builder \
+  .appName('dataset_amazon') \
+  .config('spark.jars', 'gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar') \
+  .getOrCreate()
+
+spark.conf.set("spark.sql.repl.eagerEval.enabled",True)
+```
+
 ### 4.2 Cargando datos a dataframe
 
 dgdggd
