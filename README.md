@@ -502,15 +502,64 @@ df_product_rate.write \
 
 ### 4.5 Creando tabla de clientes
 
-
+Creando la tabla pr_clients desde stg_clients
 
 ```PySpark
+#load table
+raw_clients = spark.read \
+  .format("bigquery") \
+  .option("table", table_clients) \
+  .load()
+  
+ #select columns 
+ raw_clients = raw_clients.drop('_airbyte_ab_id','_airbyte_emitted_at','rowid')
+ 
+ #renamed columns 
+raw_clients = raw_clients.withColumnRenamed('id','client_id') \
+                           .withColumnRenamed('nombre','client_name') \
+                            .withColumnRenamed('direccion','client_address') \
+                           .withColumnRenamed('email','client_email') \
+                           .withColumnRenamed('isprime','client_is_prime') \
+                           .withColumnRenamed('numero_tarjeta','client_credit_card') \
+                           .withColumnRenamed('telefono','client_phone')
 ```
-
+Resultado
 ```PySpark
+raw_clients.show(10)
+raw_clients.printSchema()
+
++--------------------+--------------------+-----------------+---------------+-----------------+-------------------+-------------+
+|      client_address|        client_email|        client_id|client_is_prime|      client_name| client_credit_card| client_phone|
++--------------------+--------------------+-----------------+---------------+-----------------+-------------------+-------------+
+| 811 Bond Route, ...|KPearson9610@outl...|310-309280-59-926|          false|Katherine Pearson|5395-1908-9123-4506|(310)052-0159|
+| 7781 John Locks,...|DBell5699@hotmail...|323-462812-43-494|          false|      Denise Bell|5145-8058-2252-3801|(323)377-0937|
+| 2649 Calhoun Ove...|DHunt4398@outlook...|510-658906-47-860|          false|       David Hunt|4962-3792-3311-9337|(510)911-5136|
+| 8650 Villa Ridge...|Christine-Sta@out...|661-024332-95-247|          false|  Christine Stark|4551-7274-4304-6403|(661)700-7605|
+| 8596 Morgan Spri...|GOconnor5032@hotm...|480-146888-22-806|          false|   George Oconnor|5450-4564-7903-8604|(480)395-3172|
+| 873 Douglas Road...|Tina_Var@hotmail.com|702-421856-10-997|          false|      Tina Vargas|4113-8373-3475-5576|(702)027-5993|
+| 2919 Harper Bypa...|BMartin3534@hotma...|623-179710-20-737|          false|    Brandi Martin|4142-5928-6392-1975|(623)635-2754|
+| 9798 Charles Cro...|THebert9341@outlo...|415-292247-48-873|          false|     Tonya Hebert|5381-6017-6261-5547|(415)058-5014|
+| 5358 Christopher...|Brianna-And@gmail...|520-858053-78-814|          false| Brianna Anderson|4141-4300-7963-7064|(520)263-2381|
+| 7704 Sanchez Cir...|Jo-T8282@hotmail.com|435-318881-49-746|          false|        Jo Taylor|5157-5473-7055-7677|(435)745-0343|
++--------------------+--------------------+-----------------+---------------+-----------------+-------------------+-------------+
+root
+ |-- client_address: string (nullable = true)
+ |-- client_email: string (nullable = true)
+ |-- client_id: string (nullable = true)
+ |-- client_is_prime: string (nullable = true)
+ |-- client_name: string (nullable = true)
+ |-- client_credit_card: string (nullable = true)
+ |-- client_phone: string (nullable = true)
+
 ```
-
+Guardando datos en Bigquery:
 ```PySpark
+raw_clients.write \
+  .format("bigquery") \
+  .option("table","becade_mgutierrez.pr_clients") \
+  .option("temporaryGcsBucket", "amazon_magdielgutierrez") \
+  .mode('overwrite') \
+  .save()
 ```
 
 [Back to Top](#Contenido)
@@ -571,6 +620,7 @@ df_raw_compras.write \
 
 ### 4.7 Creando tabla de compras anuales
 
+Creando la tabla pr_compras_anuales que consite en obtener el año, venta total del año, promedio de ventas anuales, total de ordenes por año
 
 ```PySpark
 
@@ -638,7 +688,7 @@ full_table_year.write \
 
 ### 4.8 Creando tabla de compras mensuales
 
-
+Creamos la tabla pr_compras_mensuales que consite en obtener el año y mes, venta total y total de ordenes del mes y la venta total mismo mes pero del año anterior.
 
 
 ```PySpark
@@ -852,7 +902,7 @@ full_table_year.write \
 ## 6.3 Calculo de compras mensuales
 
 ```PySpark
-
+?
 ```
 [Back to Top](#Contenido)
 
