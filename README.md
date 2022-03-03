@@ -2,11 +2,11 @@
 
 Realizar un flujo ETL usando herramientas como Airbyte para extraer los datos, almacenarlo en un capa de stagging en  Google Cloud Storage y Bigquery
 para las transformaciones y acciones basadas en la API de Spark en Dataproc que van desde simples hasta bastante complejas.
-Se mantienen don fuentes de datos:
+Se mantienen dos fuentes de datos:
 
 1-Estática: Base de datos en Cockroach con las siguiente tablas: clients, tasas_cambio_pais_anual,compras, external_products_products
 
-1.1 Estatica: Bucket de GCS llamado _zophia-proyecto-final-de_ tabla de historico de compras.
+1.1 Estática: Bucket de GCS llamado _zophia-proyecto-final-de_ tabla de historico de compras.
 
 2-Dinámica: dataset *amazon_daily_updates*  en Bigquery que diariamente recibe nuevos registros de las compras realizadas en el día, que se agregan a la tabla compras.
 
