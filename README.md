@@ -229,20 +229,22 @@ Mostrando los resultados de tranformación:
 
 ANTES:
 ```PySpark
+B081VKWHY2|JP     |true        |false  |             |￥1,547       |5つ星のうち4.4       |
+B07Q2HL42Y|JP     |true        |false  |             |￥2,273       |5つ星のうち4.6       |
+B07N4B5MBK|BR     |true        |false  |R$           |2.000,35      |4,5 de 5 estrelas |
+B00LI4O9EA|BR     |false       |false  |R$           |275,00        |4,8 de 5 estrelas |
 
 ```
 
 DESPUES: 
 ```PySpark
-df_clean_products_raw.show(5)
 +----------+-------+------------+-------+-----------------------+----------+--------------+
 |product_id|country|isbestseller|isprime|app_sale_price_currency|clean_rate|app_sale_price|
 +----------+-------+------------+-------+-----------------------+----------+--------------+
-|B07FXP7HVS|     IT|        true|  false|                      €|       4.1|         18.19|
-|B077T5RQF7|     IT|        true|   true|                      €|       4.4|         50.48|
-|B074VMTP68|     DE|        true|   true|                      €|       4.4|         29.99|
-|B00QHC01C2|     NL|       false|   true|                      €|       4.5|         29.72|
-|B01GFJWHZ0|     NL|        true|   true|                      €|       4.5|         21.43|
+|B081VKWHY2|     JP|        true|  false|                       |       4.4|          1547|
+|B07Q2HL42Y|     JP|        true|  false|                       |       4.6|          2273|
+|B07N4B5MBK|     BR|        true|  false|                    R$ |       4.5|       2000.35|
+|B00LI4O9EA|     BR|       false|  false|                    R$ |       4.8|           275|
 +----------+-------+------------+-------+-----------------------+----------+--------------+
 ```
 
